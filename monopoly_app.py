@@ -11,39 +11,45 @@ import numpy as np
 
 
 def create_board():
-    return [np.zeros((7,)), 
-            np.zeros((7,)), 
-            np.zeros((9,)), 
-            np.zeros((9,)), 
-            np.zeros((9,)), 
-            np.zeros((9,)), 
-            np.zeros((11,)), 
-            np.zeros((9,)), 
-            np.zeros((7,)), 
-            np.zeros((9,)),
-            np.zeros((100,))]
+    return [np.zeros((7,)),       #0. browns
+            np.zeros((7,)),       #1. dark blues
+            np.zeros((9,)),       #2. greens
+            np.zeros((9,)),       #3. light blues
+            np.zeros((9,)),       #4. oranges
+            np.zeros((9,)),       #5. purple
+            np.zeros((11,)),      #6. rail roads
+            np.zeros((9,)),       #7. reds
+            np.zeros((7,)),       #8. utilites
+            np.zeros((9,)),       #9. yellows
+            np.zeros((67,))]      #10. money
+
+
+def create_game_state(n_players):
+    board = create_board()
+    game_state = [np.ones((110,)),     #0. deck
+                  [],                  #1. boards
+                  [],                  #2. hands 
+                  np.zeros((110,))]    #3. cards down
+    for i in range(n_players):
+        game_state[1].append(board)
+        game_state[2].append(np.zeros(110,))
+    return game_state
 
 
 def initialize_params(n_players):
     global nPlayers
-    global choices
-    global gameOn
-    global deckWeights
     global gameState
+    global choices
+    global deckWeights
     global firstRound
+    global gameOn
     nPlayers = n_players
-    f = open('allCards.txt','r') #init deck
-    deck = np.array([int((line.split(',')[1]).strip()) for line in f])
-    f.close()
-    choices = np.arange(58) # init choices
-    deckWeights = deck/np.sum(deck) # init weights
-    board = [np.zeros((7,)), np.zeros((7,)), np.zeros((9,)), np.zeros((9,)), np.zeros((9,), np.zeros((9,), np.zeros((11,), np.zeros((9,), np.zeros((7,), np.zeros((9,)]
-    gameState = [deck, 
-                 np.zeros((n_players,58)), 
-                 np.zeros((n_players,58)), 
-                 np.zeros((58,))] #deck, boards, hands, cards down
+    gameState = create_game_state(n_players)
+    choices = np.arange(110)
+    deckWeights = gameState[0]/sum(gameState[0])
     gameOn = True
     firstRound = True
+
 
 
 def draw_five_cards(player_index):
@@ -61,30 +67,10 @@ def draw_card(player_index):
     deckWeights = gameState[0]/np.sum(gameState[0])
 
 
-choices = 0
 nPlayers = 0
-gameOn = False
-deck = 0
-deckWeights = 0
 gameState = []
+choices = np.array([])
+deckWeights = np.array([])
+gameOn = False
 firstRound = False
 initialize_params(n_players=2)
-
-
-while gameOn:
-    if firstRound:
-        for player_index in range(nPlayers):
-            draw_five_cards(player_index)
-        
-        for player_index in range(nPlayers):
-            moves = 3
-            
-
-
-        firstRound = False
-
-    break
-    #for player in range(n_players):
-         #one turn
-
-print(gameState[1])
