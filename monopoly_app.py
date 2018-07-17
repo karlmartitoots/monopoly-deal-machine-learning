@@ -51,7 +51,6 @@ def initialize_params(n_players):
     firstRound = True
 
 
-
 def draw_five_cards(player_index):
     for i in range(5):
             draw_card(player_index)
