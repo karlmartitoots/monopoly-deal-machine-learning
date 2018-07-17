@@ -9,6 +9,21 @@ import numpy as np
 #TODO: end game conditions
 #TODO: object-oriented cards
 
+
+def create_board():
+    return [np.zeros((7,)), 
+            np.zeros((7,)), 
+            np.zeros((9,)), 
+            np.zeros((9,)), 
+            np.zeros((9,)), 
+            np.zeros((9,)), 
+            np.zeros((11,)), 
+            np.zeros((9,)), 
+            np.zeros((7,)), 
+            np.zeros((9,)),
+            np.zeros((100,))]
+
+
 def initialize_params(n_players):
     global nPlayers
     global choices
@@ -22,7 +37,11 @@ def initialize_params(n_players):
     f.close()
     choices = np.arange(58) # init choices
     deckWeights = deck/np.sum(deck) # init weights
-    gameState = [deck, np.zeros((n_players,58)), np.zeros((n_players,58)), np.zeros((58,))]
+    board = [np.zeros((7,)), np.zeros((7,)), np.zeros((9,)), np.zeros((9,)), np.zeros((9,), np.zeros((9,), np.zeros((11,), np.zeros((9,), np.zeros((7,), np.zeros((9,)]
+    gameState = [deck, 
+                 np.zeros((n_players,58)), 
+                 np.zeros((n_players,58)), 
+                 np.zeros((58,))] #deck, boards, hands, cards down
     gameOn = True
     firstRound = True
 
