@@ -2,6 +2,7 @@ import numpy as np
 from gameState import *
 
 class Game:
+    'Holds the game information'
     
     def __init__(self, nPlayers):
         self.nPlayers = nPlayers

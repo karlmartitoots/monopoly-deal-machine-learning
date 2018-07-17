@@ -1,0 +1,3 @@
+class Shadowplayer(Player):
+
+    

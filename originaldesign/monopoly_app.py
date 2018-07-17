@@ -1,4 +1,5 @@
 import numpy as np
+import game.py
 #TODO: fix gameState missing information
 #TODO: how to make action cards work
 #TODO: how to make card choices in hand
@@ -49,7 +50,6 @@ def initialize_params(n_players):
     deckWeights = gameState[0]/sum(gameState[0])
     gameOn = True
     firstRound = True
-
 
 
 def draw_five_cards(player_index):
