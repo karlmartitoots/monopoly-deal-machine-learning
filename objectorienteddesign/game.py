@@ -333,3 +333,6 @@ class Game:
     
     def bluegreenrent(self, parameter_list):
         pass
+    
+    def check_end_condition(self):
+        return 0
