@@ -29,4 +29,19 @@ d = {
     1: action2
 }
 for i in range(53,63):
-    print(i)
+    print(np.random.randint(2))
+
+
+
+
+class thing:
+
+    def __init__(self,noPlayers):
+        self.noPlayers = noPlayers
+        self.all_action_cards = {
+            0: self.deal_breaker,
+            1: self.deal_breaker
+        }
+    
+    def deal_breaker(self):
+        pass

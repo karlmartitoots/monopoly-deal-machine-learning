@@ -1,4 +1,4 @@
-from game.py import *
+from game import Game
 
-game = Game(2)
-Game.start_game()
+g = Game(2)
+g.start_game()
