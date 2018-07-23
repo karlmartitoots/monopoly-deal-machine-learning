@@ -55,6 +55,10 @@ def placeProperty(currentPlayer, cardIndex, propertyColor):
     return True
 
 # TOTEST
+def passGo(currentPlayer):
+    drawFromDeck(2, currentPlayer)
+
+# TOTEST
 def removeProperty(fromPlayer, cardIndex, propertyColor):
     target = boards[fromPlayer][colorToSetIndex[propertyColor]]
     if cardIndex in range(65,74):
@@ -62,41 +66,33 @@ def removeProperty(fromPlayer, cardIndex, propertyColor):
     else:
         target[cardToProperty[cardIndex]] = 0
 
-# amount of players
-noOfPlayers = 2
-#noOfPlayers = int(input("Insert amount of players:"))
+# TOTEST
+def makeSets(playerIndex):
+    for setIndex in range(10):
+        makeSet(playerIndex, setIndexToColor[setIndex])
 
-# init deck
-deck = np.ones((106,))
+# TOTEST
+def makeSet(playerIndex, setColor):
+    playerSets = sets[playerIndex]
+    setAmount = 0
+    props = set(np.where(boards[playerIndex][colorToSetIndex[setColor]] == 1))
+    if setColor + "1" in playerSets:
+        setAmount += 1
+        props -= set(playerSets[setColor + "1"])
+    if setColor + "2" in playerSets:
+        setAmount += 1
+        props -= set(playerSets[setColor + "2"])
+    if len(props) == colorToFullSetAmount[setColor]:
+        playerSets[setColor + str(setAmount+1)] = list(props)
 
-# init cardIndices down
-cardsDown = np.zeros((106,))
+# TOTEST
+def dealBreaker(fromPlayer, currentPlayer, setKey):
+    setIndices = sets[fromPlayer][setKey]
+    boards[fromPlayer][colorToSetIndex[setKey[:-1]]][setIndices] = 0
+    boards[currentPlayer][colorToSetIndex[setKey[:-1]]][setIndices] = 1
+    sets[currentPlayer][setKey if setKey not in sets[currentPlayer] else setKey[:-1] + "2"] = setIndices
 
-# init hands
-hands = np.zeros((noOfPlayers, 106))
-board = [np.zeros((7,)),       #0. browns
-         np.zeros((7,)),       #1. dark blues
-         np.zeros((9,)),       #2. greens
-         np.zeros((9,)),       #3. light blues
-         np.zeros((9,)),       #4. oranges
-         np.zeros((9,)),       #5. purple
-         np.zeros((11,)),      #6. rail roads
-         np.zeros((9,)),       #7. reds
-         np.zeros((7,)),       #8. utilites
-         np.zeros((9,)),       #9. yellows
-         np.zeros((67,))]      #10. money
-boards = []
-sets = []
-# make player boards and give first five cardIndices to all players
-for player in range(noOfPlayers):
-    sets.append({})
-    boards.append(board)
-    drawFromDeck(5, player)
-
-def dealBreaker():
-    # problem - set implementation doesnt allow dealbreakers
-    pass
-
+# TOTEST
 def debtCollector(fromPlayer, currentPlayer):
     askAmount(fromPlayer, currentPlayer, 5)
 
@@ -133,10 +129,36 @@ def birthday(currentPlayer):
 def askAmount(fromPlayer, toPlayer, amount):
     pass
 
-# TOTEST
-def passGo(currentPlayer):
-    drawFromDeck(2, currentPlayer)
+# amount of players
+noOfPlayers = 2
+#noOfPlayers = int(input("Insert amount of players:"))
 
+# init deck
+deck = np.ones((106,))
+
+# init cardIndices down
+cardsDown = np.zeros((106,))
+
+# init hands
+hands = np.zeros((noOfPlayers, 106))
+board = [np.zeros((7,)),       #0. browns
+         np.zeros((7,)),       #1. dark blues
+         np.zeros((9,)),       #2. greens
+         np.zeros((9,)),       #3. light blues
+         np.zeros((9,)),       #4. oranges
+         np.zeros((9,)),       #5. purple
+         np.zeros((11,)),      #6. rail roads
+         np.zeros((9,)),       #7. reds
+         np.zeros((7,)),       #8. utilites
+         np.zeros((9,)),       #9. yellows
+         np.zeros((67,))]      #10. money
+boards = []
+sets = []
+# make player boards and give first five cardIndices to all players
+for player in range(noOfPlayers):
+    sets.append({})
+    boards.append(board)
+    drawFromDeck(5, player)
 
 
 all_action_cards = {
@@ -176,7 +198,6 @@ all_action_cards = {
     33: slyDeal,
     34: slyDeal
 }
-
 
 # set index in a players board array
 colorToSetIndex = {
@@ -450,21 +471,3 @@ cardToProperty = {
     64: -4
 }
 
-# TOTEST
-def makeSets(playerIndex):
-    for setIndex in range(10):
-        makeSet(playerIndex, setIndexToColor[setIndex])
-
-# TOTEST
-def makeSet(playerIndex, setColor):
-    playerSets = sets[playerIndex]
-    setAmount = 0
-    props = set(np.where(boards[playerIndex][colorToSetIndex[setColor]] == 1))
-    if setColor + "1" in playerSets:
-        setAmount += 1
-        props -= set(playerSets[setColor + "1"])
-    if setColor + "2" in playerSets:
-        setAmount += 1
-        props -= set(playerSets[setColor + "2"])
-    if len(props) == colorToFullSetAmount[setColor]:
-        playerSets[setColor + str(setAmount+1)] = list(props)
