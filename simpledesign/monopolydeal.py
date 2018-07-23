@@ -91,148 +91,30 @@ for player in range(noOfPlayers):
     boards.append(board)
     drawFromDeck(5, player)
 
-self.all_action_cards = {
-     0: deal_breaker,
-     1: deal_breaker,
-     2: debt_collector,
-     3: debt_collector,
-     4: debt_collector,
-     5: double_rent,
-     6: double_rent,
-     7: forced_deal,
-     8: forced_deal,
-     9: forced_deal,
-    10: hotel,
-    11: hotel,
-    12: hotel,
-    13: house,
-    14: house,
-    15: house,
-    16: say_no,
-    17: say_no,
-    18: say_no,
-    19: birthday,
-    20: birthday,
-    21: birthday,
-    22: pass_go,
-    23: pass_go,
-    24: pass_go,
-    25: pass_go,
-    26: pass_go,
-    27: pass_go,
-    28: pass_go,
-    29: pass_go,
-    30: pass_go,
-    31: pass_go,
-    32: sly_deal,
-    33: sly_deal,
-    34: sly_deal
-}
-self.all_property_cards = {
-    35: brown,
-    36: brown, 
-    37: blue, 
-    38: blue, 
-    39: green, 
-    40: green, 
-    41: green, 
-    42: lightblue, 
-    43: lightblue, 
-    44: lightblue, 
-    45: orange, 
-    46: orange, 
-    47: orange, 
-    48: purple, 
-    49: purple,
-    50: purple, 
-    51: black, 
-    52: black, 
-    53: black, 
-    54: black, 
-    55: red, 
-    56: red, 
-    57: red, 
-    58: pistacchio, 
-    59: pistacchio,
-    60: yellow, 
-    61: yellow, 
-    62: yellow
-}
-self.all_property_wild_cards = {
-    63: self.bluegreen, 
-    64: self.lightbluebrown, 
-    65: self.rainbow, 
-    66: self.rainbow, 
-    67: self.orangepurple, 
-    68: self.orangepurple, 
-    69: self.greenblack,
-    70: self.lightblueblack, 
-    71: self.pistacchioblack, 
-    72: self.redyellow, 
-    73: self.redyellow
-}
-self.all_rent_cards = {
-    74: self.rainbowrent,
-    75: self.rainbowrent,
-    76: self.rainbowrent, 
-    77: self.bluegreenrent, 
-    78: self.bluegreenrent, 
-    79: self.lightbluebrownrent, 
-    80: self.lightbluebrownrent,
-    81: self.orangepurplerent, 
-    82: self.orangepurplerent,
-    83: self.pistacchioblackrent, 
-    84: self.pistacchioblackrent,
-    85: self.redyellowrent,
-    86: self.redyellowrent
-}
-
-def start_game(self):
-    while 1:
-        for player in range(self.no_of_players):
-            move_counter = 0
-            current_player = player
-            current_hand = self.hands[player]
-            current_board = self.boards[player]
-            while move_counter < 3:
-                card_chosen = False
-                while not card_chosen:
-                    card_index = int(input("What card will you use?"))
-                    if card_index in current_hand and self.can_use(current_player,card_index):
-                        self.make_move(current_player, card_index)
-                        move_counter += 1
-                        card_chosen = True
-                    else:
-                        print("Can't do, try again")
-        # start someones turn
-        # make a move using card_index
-        # check for end condition
-        # repeat up to two times
-        # start next players turn
-
-def deal_breaker(self):
+def dealBreaker():
+    # problem - set implementation doesnt allow dealbreakers
     pass
 
-def debt_collector(self, parameter_list):
+def debtCollector(fromPlayer, currentPlayer):
+    askAmount(fromPlayer, currentPlayer, 5)
+
+def doubleRent():
     pass
 
-def double_rent(self, parameter_list):
-    pass
+# TOTEST
+def forcedDeal(currentPlayer, otherPlayer, ownCardIndex, otherCardIndex, ownColor, otherColor):
+    removeProperty(otherPlayer, otherCardIndex, otherColor)
+    removeProperty(currentPlayer, ownCardIndex, ownColor)
+    placeProperty(otherPlayer, ownCardIndex, ownColor)
+    placeProperty(currentPlayer, otherCardIndex, otherColor)
 
-def forced_deal(currentPlayer):
-    pass
-
-def sly_deal(self, parameter_list):
-    pass
-
-def hotel(self, parameter_list):
-    pass
-
-def house(self, parameter_list):
-    pass
+#TOTEST
+def slyDeal(currentPlayer, otherPlayer, cardIndex, color):
+    removeProperty(fromPlayer, cardIndex, color)
+    placeProperty(currentPlayer, cardIndex, color)
 
 # TODO
-def say_no(currentPlayer):
+def sayNo(currentPlayer):
     pass
 
 # TOTEST 
