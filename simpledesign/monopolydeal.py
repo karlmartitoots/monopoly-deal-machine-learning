@@ -1,17 +1,52 @@
 import numpy as np
 
+# TESTED
+def drawFromDeck(amount, forPlayer):
+    # old one: cardIndices = np.random.choice([index for index, exists in zip(np.arange(106),deck) if exists], amount, replace=False)
+    cardIndices = np.random.choice(np.where(deck == 1)[0], amount, replace=False)
+    deck[cardIndices] = 0
+    giveCards(cardIndices, forPlayer)
+
+# TESTED
+def giveCards(cardIndices, toPlayer):
+    hands[toPlayer][cardIndices] = 1
+
+# TESTED
+def addHouseRent(func):
+    def houseRentAdder(currentPlayer, propertyColor):
+        return (func(currentPlayer, propertyColor) + 3) if boards[currentPlayer][colorToSetIndex[propertyColor]][-2] == 1 else func(currentPlayer, propertyColor)
+    return houseRentAdder
+
+# TESTED
+def addHotelRent(func):
+    def hotelRentAdder(currentPlayer, propertyColor):
+        return (func(currentPlayer, propertyColor) + 4) if boards[currentPlayer][colorToSetIndex[propertyColor]][-1] == 1 else func(currentPlayer, propertyColor)
+    return hotelRentAdder
+
+# TESTED
+@addHouseRent
+@addHotelRent
+def calculateRentForPlayer(currentPlayer, propertyColor):
+    return colorToRent[propertyColor][getPropertyAmount(currentPlayer, propertyColor)-1]
+
+# TESTED
+def getPropertyAmount(currentPlayer, propertyColor):
+    # actually includes houses and hotels, but can't have them anyway if not complete
+    return min(np.sum(boards[currentPlayer][colorToSetIndex[propertyColor]] == 1), colorToFullSetAmount[propertyColor])
+
+
 # amount of players
 noOfPlayers = 2
 #noOfPlayers = int(input("Insert amount of players:"))
 
 # init deck
-deck = np.ones((110,))
+deck = np.ones((106,))
 
 # init cardIndices down
-cardsDown = np.zeros((110,))
+cardsDown = np.zeros((106,))
 
 # init hands
-hands = np.zeros((noOfPlayers, 110))
+hands = np.zeros((noOfPlayers, 106))
 board = [np.zeros((7,)),       #0. browns
          np.zeros((7,)),       #1. dark blues
          np.zeros((9,)),       #2. greens
