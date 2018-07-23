@@ -86,8 +86,10 @@ board = [np.zeros((7,)),       #0. browns
          np.zeros((9,)),       #9. yellows
          np.zeros((67,))]      #10. money
 boards = []
+sets = []
 # make player boards and give first five cardIndices to all players
 for player in range(noOfPlayers):
+    sets.append({})
     boards.append(board)
     drawFromDeck(5, player)
 
@@ -110,7 +112,7 @@ def forcedDeal(currentPlayer, otherPlayer, ownCardIndex, otherCardIndex, ownColo
 
 #TOTEST
 def slyDeal(currentPlayer, otherPlayer, cardIndex, color):
-    removeProperty(fromPlayer, cardIndex, color)
+    removeProperty(otherPlayer, cardIndex, color)
     placeProperty(currentPlayer, cardIndex, color)
 
 # TODO
@@ -189,6 +191,8 @@ colorToSetIndex = {
     "pistacchio": 8,
     "yellow": 9
 }
+
+setIndexToColor = dict((reversed(item) for item in colorToSetIndex.items()))
 
 # amount of properties in full set
 colorToFullSetAmount = {
@@ -446,3 +450,21 @@ cardToProperty = {
     64: -4
 }
 
+# TOTEST
+def makeSets(playerIndex):
+    for setIndex in range(10):
+        makeSet(playerIndex, setIndexToColor[setIndex])
+
+# TOTEST
+def makeSet(playerIndex, setColor):
+    playerSets = sets[playerIndex]
+    setAmount = 0
+    props = set(np.where(boards[playerIndex][colorToSetIndex[setColor]] == 1))
+    if setColor + "1" in playerSets:
+        setAmount += 1
+        props -= set(playerSets[setColor + "1"])
+    if setColor + "2" in playerSets:
+        setAmount += 1
+        props -= set(playerSets[setColor + "2"])
+    if len(props) == colorToFullSetAmount[setColor]:
+        playerSets[setColor + str(setAmount+1)] = list(props)
