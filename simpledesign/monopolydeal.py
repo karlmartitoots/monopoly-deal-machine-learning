@@ -135,16 +135,46 @@ def askAmount(fromPlayer, toPlayer, amount):
 def passGo(currentPlayer):
     drawFromDeck(2, currentPlayer)
 
-# TOTEST
-def drawFromDeck(amount, forPlayer):
-    #cardIndices = np.random.choice([index for index, exists in zip(np.arange(106),deck) if exists], amount, replace=False)
-    cardIndices = np.random.choice(np.where(deck == 1), amount, replace=False)
-    deck[cardIndices] = 0.0
-    giveCards(cardIndices, toPlayer)
 
-# TOTEST
-def giveCards(cardIndices, toPlayer):
-    hands[toPlayer][cardIndices] = 1.0
+
+all_action_cards = {
+     0: dealBreaker,
+     1: dealBreaker,
+     2: debtCollector,
+     3: debtCollector,
+     4: debtCollector,
+     5: doubleRent,
+     6: doubleRent,
+     7: forcedDeal,
+     8: forcedDeal,
+     9: forcedDeal,
+    10: placeHouse,
+    11: placeHouse,
+    12: placeHouse,
+    13: placeHotel,
+    14: placeHotel,
+    15: placeHotel,
+    16: sayNo,
+    17: sayNo,
+    18: sayNo,
+    19: birthday,
+    20: birthday,
+    21: birthday,
+    22: passGo,
+    23: passGo,
+    24: passGo,
+    25: passGo,
+    26: passGo,
+    27: passGo,
+    28: passGo,
+    29: passGo,
+    30: passGo,
+    31: passGo,
+    32: slyDeal,
+    33: slyDeal,
+    34: slyDeal
+}
+
 
 # set index in a players board array
 colorToSetIndex = {
@@ -188,36 +218,36 @@ colorToJokers = {
     "yellow": 2
 }
 
-# property color
+# property propertyColor
 cardIndexToColor = {
-    11: "brown",
-    12: "brown",
-    13: "blue",
-    14: "blue",
-    15: "green",
-    16: "green",
-    17: "green",
-    18: "lightblue",
-    19: "lightblue",
-    20: "lightblue",
-    21: "orange",
-    22: "orange",
-    23: "orange",
-    24: "purple",
-    25: "purple",
-    26: "purple",
-    27: "black",
-    28: "black",
-    29: "black",
-    30: "black",
-    31: "red",
-    32: "red",
-    33: "red",
-    34: "pistacchio",
-    35: "pistacchio",
-    36: "yellow",
-    37: "yellow",
-    38: "yellow"
+    35: "brown",
+    36: "brown",
+    37: "blue",
+    38: "blue",
+    39: "green",
+    40: "green",
+    41: "green",
+    42: "lightblue",
+    43: "lightblue",
+    44: "lightblue",
+    45: "orange",
+    46: "orange",
+    47: "orange",
+    48: "purple",
+    49: "purple",
+    50: "purple",
+    51: "black",
+    52: "black",
+    53: "black",
+    54: "black",
+    55: "red",
+    56: "red",
+    57: "red",
+    58: "pistacchio",
+    59: "pistacchio",
+    60: "yellow",
+    61: "yellow",
+    62: "yellow"
 }
 
 # card value
@@ -285,10 +315,10 @@ cardIndexToValue = {
     60: 3, 
     61: 3, 
     62: 3,
-    63: 4, 
-    64: 1, 
-    65: 0, 
-    66: 0, 
+    63: 0, 
+    64: 0, 
+    65: 4, 
+    66: 1, 
     67: 2, 
     68: 2, 
     69: 4,
