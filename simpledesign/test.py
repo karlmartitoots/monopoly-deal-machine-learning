@@ -1,53 +1,48 @@
 import numpy as np
+import random
 
 
-def giveCards(cardIndices, toPlayer):
-    hands[toPlayer][cardIndices] = 1
+def giveCards(cards, toPlayer):
+    for card in cards:
+        hands[toPlayer][card] = True
 
 def giveCardsTest():
-    cardIndices = [0,2,59,38,105,3]
+    cards = ["dealbreaker1","green1","black3"]
     toPlayer = 0
 
-    giveCards(cardIndices,toPlayer)
+    giveCards(cards, toPlayer)
 
-    assert(all(hands[toPlayer][[0,2,3,38,59,105]]))
+    assert(all([hands[toPlayer][card] for card in cards]))
 
 def drawFromDeck(amount, forPlayer):
-    # old one: cardIndices = np.random.choice([index for index, exists in zip(np.arange(106),deck) if exists], amount, replace=False)
-    cardIndices = np.random.choice(np.where(deck == 1)[0], amount, replace=False)
-    deck[cardIndices] = 0
-    giveCards(cardIndices, forPlayer)
+    availableCards = [card for card, cardInDeck in deck.items() if cardInDeck]
+    chosenCards = random.sample(availableCards, amount)
+    for card in chosenCards:
+        deck[card] = False
+    giveCards(chosenCards, forPlayer)
 
-def drawFromDeckOneCardTest():
+def drawFromDeckFiveRandomCardsTest():
     player = 0
-    deck[1] = 1
+    for card in deck:
+        deck[card] = False
+    random5cards = random.sample(deck.keys(), 5)
+    for card in random5cards:
+        deck[card] = True
     
-    drawFromDeck(1, player)
+    drawFromDeck(5, player)
 
-    assert(hands[player][1] == 1)
-    assert(not(1 in deck))
+    assert(all(hands[player][card] for card in random5cards))
+    assert(not(True in deck.values()))
 
 def drawFromDeckAllCardsTest():
     player = 0
-    deck[:] = 1
+    for card in deck:
+        deck[card] = True
     
     drawFromDeck(106, player)
 
-    assert(all(hands[player]))
-    assert(not(1 in deck))
-
-colorToSetIndex = {
-    "brown": 0,
-    "blue": 1,
-    "green": 2,
-    "lightblue": 3,
-    "orange": 4,
-    "purple": 5,
-    "black": 6,
-    "red": 7,
-    "pistacchio": 8,
-    "yellow": 9
-}
+    assert(all(hands[player].values()))
+    assert(not(True in deck.values()))
 
 colorToFullSetAmount = {
     "brown": 2,
@@ -62,24 +57,38 @@ colorToFullSetAmount = {
     "yellow": 3
 }
 
-def getPropertyAmount(currentPlayer, propertyColor):
+def getPropertyAmount(player, color):
     # actually includes houses and hotels, but can't have them anyway if not complete
-    return min(np.sum(boards[currentPlayer][colorToSetIndex[propertyColor]] == 1), colorToFullSetAmount[propertyColor])
+    return min(sum(boards[player][color].values()), colorToFullSetAmount[color])
 
 def getPropertyAmountTest():
     player1 = 1
     player2 = 0
-    boards[player1][0][0:2] = 1 # 2 browns
-    boards[player1][5][[1,-3]] = 1 # 2 purples with rainbow wild card
-    boards[player2][2][[0,1,2,-1]] = 1 # 3 greens + house
+    props = []
+    boards[player1]["brown"]["brown1"] = 1
+    boards[player1]["brown"]["brown2"] = 1
+    boards[player1]["purple"]["purple1"] = 1
+    boards[player1]["purple"]["purple2"] = 1
+    boards[player1]["purple"]["rainbow2"] = 1
+    boards[player2]["green"]["green1"] = 1
+    boards[player2]["green"]["green2"] = 1
+    boards[player2]["green"]["green3"] = 1
+    boards[player2]["green"]["house"] = 1
+
 
     assert(getPropertyAmount(player1, "brown") == 2)
-    assert(getPropertyAmount(player1, "purple") == 2)
+    assert(getPropertyAmount(player1, "purple") == 3)
     assert(getPropertyAmount(player2, "green") == 3)
 
-    boards[player1][0][0:2] = 0
-    boards[player1][5][[1,-3]] = 0
-    boards[player2][2][[0,1,2,-1]] = 0
+    boards[player1]["brown"]["brown1"] = 0
+    boards[player1]["brown"]["brown2"] = 0
+    boards[player1]["purple"]["purple1"] = 0
+    boards[player1]["purple"]["purple2"] = 0
+    boards[player1]["purple"]["rainbow2"] = 0
+    boards[player2]["green"]["green1"] = 0
+    boards[player2]["green"]["green2"] = 0
+    boards[player2]["green"]["green3"] = 0
+    boards[player2]["green"]["house"] = 0
 
 colorToRent = {
     "brown": (1,2),
@@ -95,209 +104,502 @@ colorToRent = {
 }
 
 def addHouseRent(func):
-    def houseRentAdder(currentPlayer, propertyColor):
-        return (func(currentPlayer, propertyColor) + 3) if boards[currentPlayer][colorToSetIndex[propertyColor]][-2] == 1 else func(currentPlayer, propertyColor)
+    def houseRentAdder(player, color):
+        return (func(player, color) + 3) if boards[player][color]["house"] == 1 else func(player, color)
     return houseRentAdder
 
 def addHotelRent(func):
-    def hotelRentAdder(currentPlayer, propertyColor):
-        return (func(currentPlayer, propertyColor) + 4) if boards[currentPlayer][colorToSetIndex[propertyColor]][-1] == 1 else func(currentPlayer, propertyColor)
+    def hotelRentAdder(player, color):
+        return (func(player, color) + 4) if boards[player][color]["hotel"] == 1 else func(player, color)
     return hotelRentAdder
 
 @addHouseRent
 @addHotelRent
-def calculateRentForPlayer(currentPlayer, propertyColor):
-    return colorToRent[propertyColor][getPropertyAmount(currentPlayer, propertyColor)-1]
+def calculateRentForPlayer(player, color):
+    return colorToRent[color][getPropertyAmount(player, color)-1]
 
 def calculateRentForPlayerTest():
     player1 = 0
     player2 = 1
-    boards[player1][0][[0,2]] = 1 # 2 browns
-    boards[player1][6][[0,1,-3]] = 1 # 3 blacks with rainbow wild card
-    boards[player2][2][[0,1,2]] = 1 # 3 greens
+    boards[player1]["brown"]["brown1"] = 1
+    boards[player1]["brown"]["lightbluebrown"] = 1
+    boards[player1]["black"]["black1"] = 1
+    boards[player1]["black"]["black2"] = 1
+    boards[player1]["black"]["rainbow1"] = 1
+    boards[player2]["green"]["green1"] = 1
+    boards[player2]["green"]["green2"] = 1
+    boards[player2]["green"]["green3"] = 1
 
     assert(calculateRentForPlayer(player1, "brown") == 2)
     assert(calculateRentForPlayer(player1, "black") == 3)
     assert(calculateRentForPlayer(player2, "green") == 7)
 
-    boards[player1][0][[0,2]] = 0
-    boards[player1][6][[0,1,-3]] = 0
-    boards[player2][2][[0,1,2]] = 0
+    boards[player1]["brown"]["brown1"] = 0
+    boards[player1]["brown"]["lightbluebrown"] = 0
+    boards[player1]["black"]["black1"] = 0
+    boards[player1]["black"]["black2"] = 0
+    boards[player1]["black"]["rainbow1"] = 0
+    boards[player2]["green"]["green1"] = 0
+    boards[player2]["green"]["green2"] = 0
+    boards[player2]["green"]["green3"] = 0
 
 def addHouseRentTest():
     player1 = 0
     player2 = 1
-    boards[player1][0][[0,2,-2]] = 1 # 2 browns + house
-    boards[player2][2][[0,1,2,-2]] = 1 # 3 greens + house
+    boards[player1]["brown"]["brown1"] = 1
+    boards[player1]["brown"]["lightbluebrown"] = 1
+    boards[player1]["brown"]["house"] = 1
+    boards[player2]["green"]["green1"] = 1
+    boards[player2]["green"]["green2"] = 1
+    boards[player2]["green"]["green3"] = 1
+    boards[player2]["green"]["house"] = 1
 
     assert(calculateRentForPlayer(player1, "brown") == 5)
     assert(calculateRentForPlayer(player2, "green") == 10)
 
-    boards[player1][0][[0,2,-2]] = 0
-    boards[player2][2][[0,1,2,-2]] = 0
+    boards[player1]["brown"]["brown1"] = 0
+    boards[player1]["brown"]["lightbluebrown"] = 0
+    boards[player1]["brown"]["house"] = 0
+    boards[player2]["green"]["green1"] = 0
+    boards[player2]["green"]["green2"] = 0
+    boards[player2]["green"]["green3"] = 0
+    boards[player2]["green"]["house"] = 0
 
 def addHotelRentTest():
     player1 = 0
     player2 = 1
-    boards[player1][5][[0,1,-3,-2,-1]] = 1 # 3 purples + house + hotel
-    boards[player2][2][[0,1,2,-2,-1]] = 1 # 3 greens + house + hotel
+    boards[player1]["purple"]["purple1"] = 1
+    boards[player1]["purple"]["purple2"] = 1
+    boards[player1]["purple"]["rainbow2"] = 1
+    boards[player1]["purple"]["house"] = 1
+    boards[player1]["purple"]["hotel"] = 1
+    boards[player2]["green"]["green1"] = 1
+    boards[player2]["green"]["green2"] = 1
+    boards[player2]["green"]["green3"] = 1
+    boards[player2]["green"]["house"] = 1
+    boards[player2]["green"]["hotel"] = 1
 
     assert(calculateRentForPlayer(player1, "purple") == 11)
     assert(calculateRentForPlayer(player2, "green") == 14)
 
-    boards[player1][5][[0,1,-3,-2,-1]] = 0
-    boards[player2][2][[0,1,2,-2,-1]] = 0
+    boards[player1]["purple"]["purple1"] = 0
+    boards[player1]["purple"]["purple2"] = 0
+    boards[player1]["purple"]["rainbow2"] = 0
+    boards[player1]["purple"]["house"] = 0
+    boards[player1]["purple"]["hotel"] = 0
+    boards[player2]["green"]["green1"] = 0
+    boards[player2]["green"]["green2"] = 0
+    boards[player2]["green"]["green3"] = 0
+    boards[player2]["green"]["house"] = 0
+    boards[player2]["green"]["hotel"] = 0
 
-def placeHouse(currentPlayer, propertyColor):
-    boards[currentPlayer][colorToSetIndex[propertyColor]][-2] = 1
+def placeHouse(player, color):
+    boards[player][color]["house"] = 1
 
 def placeHouseTest():
     player = 1
-    boards[player][5][[0,1,-3]] = 1
+    boards[player]["purple"]["purple1"] = 1
+    boards[player]["purple"]["purple2"] = 1
+    boards[player]["purple"]["rainbow2"] = 1
 
     placeHouse(player, "purple")
 
-    assert(boards[player][5][-2] == 1)
+    assert(boards[player]["purple"]["house"])
 
-    boards[player][5][[0,1,-3,-2]] = 0
+    boards[player]["purple"]["purple1"] = 0
+    boards[player]["purple"]["purple2"] = 0
+    boards[player]["purple"]["rainbow2"] = 0
 
-def placeHotel(currentPlayer, propertyColor):
-    boards[currentPlayer][colorToSetIndex[propertyColor]][-1] = 1
+def placeHotel(player, color):
+    boards[player][color]["hotel"] = 1
 
 def placeHotelTest():
     player = 0
-    boards[player][4][[0,2,-3,-2]] = 1
+    boards[player]["orange"]["orange1"] = 1
+    boards[player]["orange"]["orange3"] = 1
+    boards[player]["orange"]["rainbow2"] = 1
+    boards[player]["orange"]["hotel"] = 1
     
     placeHotel(player, "orange")
     
-    assert(boards[player][4][-1] == 1)
+    assert(boards[player]["orange"]["hotel"])
 
-    boards[player][4][[0,2,-3,-1]] = 0
+    boards[player]["orange"]["orange1"] = 0
+    boards[player]["orange"]["orange3"] = 0
+    boards[player]["orange"]["rainbow2"] = 0
+    boards[player]["orange"]["hotel"] = 0
 
-cardToJoker = {
-    65: {
-        "blue": 2,
-        "green": 3
-    },
-    66: {
-        "brown": 2,
-        "lightblue": 3
-    }, 
-    67: {"orange": 3,
-        "purple": 3
-    }, 
-    68: {"orange": 4,
-        "purple": 4
-    }, 
-    69: {"green": 4,
-        "black": 4
-    },
-    70: {
-        "lightblue": 4,
-        "black": 5
-    }, 
-    71: {
-        "pistacchio": 2,
-        "black": 6
-    }, 
-    72: {
-        "red": 3,
-        "yellow": 3
-    },
-    73: {
-        "red": 4,
-        "yellow": 4
-    }
-}
-
-cardToProperty = {
-    35: 0,
-    36: 1,
-    37: 0,
-    38: 1,
-    39: 0,
-    40: 1,
-    41: 2,
-    42: 0,
-    43: 1,
-    44: 2,
-    45: 0,
-    46: 1,
-    47: 2,
-    48: 0,
-    49: 1,
-    50: 2,
-    51: 0,
-    52: 1,
-    53: 2,
-    54: 3,
-    55: 0,
-    56: 1,
-    57: 2,
-    58: 0,
-    59: 1,
-    60: 0,
-    61: 1,
-    62: 2,
-    63: -3,
-    64: -4
-}
-
-def placeProperty(currentPlayer, cardIndex, propertyColor):
-    # TODO: have to check if player has property in case of rainbow wildcard
-    target = boards[currentPlayer][colorToSetIndex[propertyColor]]
-    if cardIndex in range(65,74):
-        target[cardToJoker[cardIndex][propertyColor]] = 1
-    else:
-        target[cardToProperty[cardIndex]] = 1
+def placeProperty(player, card, color):
+    if card in ["rainbow1","rainbow2"] and not getPropertyAmount(player,color):
+        return False
+    
+    boards[player][color][card] = 1
+    return True
 
 def placePropertyTest():
     player = 0
-    purpleCard = 45
-    rainbowCard1 = 63
-    rainbowCard2 = 64
-    blueCard = 37
-    bluegreenJokerCard = 65
 
-    placeProperty(player, purpleCard, "purple")
-    placeProperty(player, rainbowCard1, "purple")
-    placeProperty(player, rainbowCard2, "purple")
-    placeProperty(player, blueCard, "blue")
-    placeProperty(player, bluegreenJokerCard, "blue")
+    placeProperty(player, "purple1", "purple")
+    placeProperty(player, "rainbow1", "purple")
+    placeProperty(player, "rainbow2", "purple")
+    placeProperty(player, "blue1", "blue")
+    placeProperty(player, "bluegreen", "blue")
 
-    assert(boards[player][5][0] == 1)
-    assert(boards[player][5][-3] == 1)
-    assert(boards[player][5][-4] == 1)
-    assert(boards[player][1][0] == 1)
-    assert(boards[player][1][2] == 1)
+    assert(boards[player]["purple"]["purple1"])
+    assert(boards[player]["purple"]["rainbow1"])
+    assert(boards[player]["purple"]["rainbow2"])
+    assert(boards[player]["blue"]["blue1"])
+    assert(boards[player]["blue"]["bluegreen"])
 
-    boards[player][5][0] = 1
-    boards[player][5][-3] = 1
-    boards[player][5][-4] = 1
-    boards[player][1][0] = 1
-    boards[player][1][2] = 1
+    boards[player]["purple"]["purple1"] = 0
+    boards[player]["purple"]["rainbow1"] = 0
+    boards[player]["purple"]["rainbow2"] = 0
+    boards[player]["blue"]["blue1"] = 0
+    boards[player]["blue"]["bluegreen"] = 0
 
+noOfPlayers = 2
 
-hands = np.zeros((2, 106))
-deck = np.zeros((106,))
-board = [np.zeros((7,)),       #0. browns
-         np.zeros((7,)),       #1. dark blues
-         np.zeros((9,)),       #2. greens
-         np.zeros((9,)),       #3. light blues
-         np.zeros((9,)),       #4. oranges
-         np.zeros((9,)),       #5. purple
-         np.zeros((11,)),      #6. rail roads
-         np.zeros((9,)),       #7. reds
-         np.zeros((7,)),       #8. utilites
-         np.zeros((9,)),       #9. yellows
-         np.zeros((67,))]      #10. money
+deck = {
+    "dealbreaker1": True,
+    "dealbreaker2": True,
+    "debtcollector1": True,
+    "debtcollector2": True,
+    "debtcollector3": True,
+    "doublerent1": True,
+    "doublerent2": True,
+    "forceddeal1": True,
+    "forceddeal2": True,
+    "forceddeal3": True,
+    "placehouse1": True,
+    "placehouse2": True,
+    "placehouse3": True,
+    "placehotel1": True,
+    "placehotel2": True,
+    "placehotel3": True,
+    "sayno1": True,
+    "sayno2": True,
+    "sayno3": True,
+    "birthday1": True,
+    "birthday2": True,
+    "birthday3": True,
+    "passgo1": True,
+    "passgo2": True,
+    "passgo3": True,
+    "passgo4": True,
+    "passgo5": True,
+    "passgo6": True,
+    "passgo7": True,
+    "passgo8": True,
+    "passgo9": True,
+    "passgo10": True,
+    "slydeal1": True,
+    "slydeal2": True,
+    "slydeal3": True,
+    "brown1": True,
+    "brown2": True,
+    "blue1": True,
+    "blue2": True,
+    "green1": True,
+    "green2": True,
+    "green3": True,
+    "lightblue1": True,
+    "lightblue2": True,
+    "lightblue3": True,
+    "orange1": True,
+    "orange2": True,
+    "orange3": True,
+    "purple1": True,
+    "purple2": True,
+    "purple3": True,
+    "black1": True,
+    "black2": True,
+    "black3": True,
+    "black4": True,
+    "red1": True,
+    "red2": True,
+    "red3": True,
+    "pistacchio1": True,
+    "pistacchio2": True,
+    "yellow1": True,
+    "yellow2": True,
+    "yellow3": True,
+    "rainbow1": True,
+    "rainbow2": True,
+    "bluegreen": True,
+    "lightbluebrown": True, 
+    "orangepurple1": True, 
+    "orangepurple2": True, 
+    "greenblack": True,
+    "lightblueblack": True, 
+    "pistacchioblack": True,
+    "redyellow1": True,
+    "redyellow2": True,
+    "rainbowrent1": True,
+    "rainbowrent2": True,
+    "rainbowrent3": True,
+    "bluegreenrent1": True,
+    "bluegreenrent2": True,
+    "lightbluebrownrent1": True,
+    "lightbluebrownrent2": True,
+    "orangepurplerent1": True, 
+    "orangepurplerent2": True, 
+    "pistacchioblackrent1": True, 
+    "pistacchioblackrent2": True, 
+    "redyellowrent1": True, 
+    "redyellowrent2": True, 
+    "10m": True, 
+    "1m1": True, 
+    "1m2": True, 
+    "1m3": True, 
+    "1m4": True, 
+    "1m5": True, 
+    "1m6": True, 
+    "2m1": True, 
+    "2m2": True, 
+    "2m3": True, 
+    "2m4": True, 
+    "2m5": True, 
+    "3m1": True, 
+    "3m2": True, 
+    "3m3": True, 
+    "4m1": True, 
+    "4m2": True, 
+    "4m3": True, 
+    "5m1": True, 
+    "5m2": True
+}
+
+cardsDown = {
+    "dealbreaker1": False,
+    "dealbreaker2": False,
+    "debtcollector1": False,
+    "debtcollector2": False,
+    "debtcollector3": False,
+    "doublerent1": False,
+    "doublerent2": False,
+    "forceddeal1": False,
+    "forceddeal2": False,
+    "forceddeal3": False,
+    "placehouse1": False,
+    "placehouse2": False,
+    "placehouse3": False,
+    "placehotel1": False,
+    "placehotel2": False,
+    "placehotel3": False,
+    "sayno1": False,
+    "sayno2": False,
+    "sayno3": False,
+    "birthday1": False,
+    "birthday2": False,
+    "birthday3": False,
+    "passgo1": False,
+    "passgo2": False,
+    "passgo3": False,
+    "passgo4": False,
+    "passgo5": False,
+    "passgo6": False,
+    "passgo7": False,
+    "passgo8": False,
+    "passgo9": False,
+    "passgo10": False,
+    "slydeal1": False,
+    "slydeal2": False,
+    "slydeal3": False,
+    "brown1": False,
+    "brown2": False,
+    "blue1": False,
+    "blue2": False,
+    "green1": False,
+    "green2": False,
+    "green3": False,
+    "lightblue1": False,
+    "lightblue2": False,
+    "lightblue3": False,
+    "orange1": False,
+    "orange2": False,
+    "orange3": False,
+    "purple1": False,
+    "purple2": False,
+    "purple3": False,
+    "black1": False,
+    "black2": False,
+    "black3": False,
+    "black4": False,
+    "red1": False,
+    "red2": False,
+    "red3": False,
+    "pistacchio1": False,
+    "pistacchio2": False,
+    "yellow1": False,
+    "yellow2": False,
+    "yellow3": False,
+    "rainbow1": False,
+    "rainbow2": False,
+    "bluegreen": False,
+    "lightbluebrown": False, 
+    "orangepurple1": False, 
+    "orangepurple2": False, 
+    "greenblack": False,
+    "lightblueblack": False, 
+    "pistacchioblack": False,
+    "redyellow1": False,
+    "redyellow2": False,
+    "rainbowrent1": False,
+    "rainbowrent2": False,
+    "rainbowrent3": False,
+    "bluegreenrent1": False,
+    "bluegreenrent2": False,
+    "lightbluebrownrent1": False,
+    "lightbluebrownrent2": False,
+    "orangepurplerent1": False, 
+    "orangepurplerent2": False, 
+    "pistacchioblackrent1": False, 
+    "pistacchioblackrent2": False, 
+    "redyellowrent1": False, 
+    "redyellowrent2": False, 
+    "10m": False, 
+    "1m1": False, 
+    "1m2": False, 
+    "1m3": False, 
+    "1m4": False, 
+    "1m5": False, 
+    "1m6": False, 
+    "2m1": False, 
+    "2m2": False, 
+    "2m3": False, 
+    "2m4": False, 
+    "2m5": False, 
+    "3m1": False, 
+    "3m2": False, 
+    "3m3": False, 
+    "4m1": False, 
+    "4m2": False, 
+    "4m3": False, 
+    "5m1": False, 
+    "5m2": False
+}
+
+hands =  []
+board = {
+    "brown": {
+        "brown1": False, 
+        "brown2": False,
+        "lightbluebrown": False,
+        "rainbow1": False,
+        "rainbow2": False,
+        "house": False,
+        "hotel": False
+    },
+    "blue": {
+        "blue1": False, 
+        "blue2": False,
+        "bluegreen": False,
+        "rainbow1": False,
+        "rainbow2": False,
+        "house": False,
+        "hotel": False
+    },
+    "green": {
+        "green1": False, 
+        "green2": False,
+        "green3": False,
+        "bluegreen": False,
+        "greenblack": False,
+        "rainbow1": False,
+        "rainbow2": False,
+        "house": False,
+        "hotel": False
+    },
+    "lightblue": {
+        "lightblue1": False, 
+        "lightblue2": False,
+        "lightblue3": False,
+        "lightbluebrown": False,
+        "lightblueblack": False,
+        "rainbow1": False,
+        "rainbow2": False,
+        "house": False,
+        "hotel": False
+    },
+    "orange": {
+        "orange1": False, 
+        "orange2": False,
+        "orange3": False,
+        "orangepurple": False,
+        "orangepurple": False,
+        "rainbow1": False,
+        "rainbow2": False,
+        "house": False,
+        "hotel": False
+    },
+    "purple": {
+        "purple1": False, 
+        "purple2": False,
+        "purple3": False,
+        "orangepurple": False,
+        "orangepurple": False,
+        "rainbow1": False,
+        "rainbow2": False,
+        "house": False,
+        "hotel": False
+    },
+    "black": {
+        "black1": False, 
+        "black2": False,
+        "black3": False,
+        "black4": False,
+        "greenblack": False,
+        "lightblueblack": False,
+        "pistacchioblack": False,
+        "rainbow1": False,
+        "rainbow2": False,
+        "house": False,
+        "hotel": False
+    },
+    "red": {
+        "red1": False, 
+        "red2": False,
+        "red3": False,
+        "redyellow": False,
+        "redyellow": False,
+        "rainbow1": False,
+        "rainbow2": False,
+        "house": False,
+        "hotel": False
+    },
+    "pistacchio": {
+        "pistacchio1": False, 
+        "pistacchio2": False,
+        "pistacchioblack": False,
+        "rainbow1": False,
+        "rainbow2": False,
+        "house": False,
+        "hotel": False
+    },
+    "yellow": {
+        "yellow1": False, 
+        "yellow2": False,
+        "yellow3": False,
+        "redyellow": False,
+        "redyellow": False,
+        "rainbow1": False,
+        "rainbow2": False,
+        "house": False,
+        "hotel": False
+    }
+}
 boards = []
-for player in range(2):
-    boards.append(board)
+sets = []
+# make player boards and give first five cardIndices to all players
+for player in range(noOfPlayers):
+    sets.append({})
+    hands.append(dict(cardsDown))
+    boards.append(dict(board))
+    drawFromDeck(5, player)
 
 # RUN TESTS
 giveCardsTest()
-drawFromDeckOneCardTest()
+drawFromDeckFiveRandomCardsTest()
 getPropertyAmountTest()
 calculateRentForPlayerTest()
 addHouseRentTest()
