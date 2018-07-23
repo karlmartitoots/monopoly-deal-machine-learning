@@ -375,23 +375,74 @@ colorToRent = {
     "yellow": (2,4,6)
 }
 
-# TOTEST
-def placeHouse(currentPlayer, propertyColor):
-    boards[currentPlayer][colorToSetIndex[propertyColor]][-2]
+#first index - card index, second index - chosen color, value - joker index
+cardToJoker = {
+    65: {
+        "blue": 2,
+        "green": 3
+    },
+    66: {
+        "brown": 2,
+        "lightblue": 3
+    }, 
+    67: {"orange": 3,
+        "purple": 3
+    }, 
+    68: {"orange": 4,
+        "purple": 4
+    }, 
+    69: {"green": 4,
+        "black": 4
+    },
+    70: {
+        "lightblue": 4,
+        "black": 5
+    }, 
+    71: {
+        "pistacchio": 2,
+        "black": 6
+    }, 
+    72: {
+        "red": 3,
+        "yellow": 3
+    },
+    73: {
+        "red": 4,
+        "yellow": 4
+    }
+}
 
-# TOTEST
-def placeHotel(currentPlayer, propertyColor):
-    boards[currentPlayer][colorToSetIndex[propertyColor]][-1]
+# index - card index, value - index in a property set
+cardToProperty = {
+    35: 0,
+    36: 1,
+    37: 0,
+    38: 1,
+    39: 0,
+    40: 1,
+    41: 2,
+    42: 0,
+    43: 1,
+    44: 2,
+    45: 0,
+    46: 1,
+    47: 2,
+    48: 0,
+    49: 1,
+    50: 2,
+    51: 0,
+    52: 1,
+    53: 2,
+    54: 3,
+    55: 0,
+    56: 1,
+    57: 2,
+    58: 0,
+    59: 1,
+    60: 0,
+    61: 1,
+    62: 2,
+    63: -3,
+    64: -4
+}
 
-# TODO
-def placeProperty(currentPlayer, propertyIndex):
-    boards[currentPlayer][colorToSetIndex[propertyColor]][-1]
-
-# TOTEST
-def calculateRentForPlayer(currentPlayer, propertyColor):
-    return colorToRent[color][getPropertyAmount(currentPlayer, propertyColor)-1]
-
-# TOTEST
-def getPropertyAmount(currentPlayer, propertyColor):
-    # actually includes houses and hotels, but can't have them anyway if not complete
-    return min(np.sum(boards[currentPlayer][colorToSetIndex[propertyColor]] == 1), colorToFullSetAmount[propertyColor])
