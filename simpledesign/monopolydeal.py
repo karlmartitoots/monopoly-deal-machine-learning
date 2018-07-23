@@ -34,6 +34,33 @@ def getPropertyAmount(currentPlayer, propertyColor):
     # actually includes houses and hotels, but can't have them anyway if not complete
     return min(np.sum(boards[currentPlayer][colorToSetIndex[propertyColor]] == 1), colorToFullSetAmount[propertyColor])
 
+# TESTED
+def placeHouse(currentPlayer, propertyColor):
+    boards[currentPlayer][colorToSetIndex[propertyColor]][-2] = 1
+    return True
+
+# TESTED
+def placeHotel(currentPlayer, propertyColor):
+    boards[currentPlayer][colorToSetIndex[propertyColor]][-1] = 1
+    return True
+
+# TESTED
+def placeProperty(currentPlayer, cardIndex, propertyColor):
+    # TODO: have to check if player has property in case of rainbow wildcard
+    target = boards[currentPlayer][colorToSetIndex[propertyColor]]
+    if cardIndex in range(65,74):
+        target[cardToJoker[cardIndex][propertyColor]] = 1
+    else:
+        target[cardToProperty[cardIndex]] = 1
+    return True
+
+# TOTEST
+def removeProperty(fromPlayer, cardIndex, propertyColor):
+    target = boards[fromPlayer][colorToSetIndex[propertyColor]]
+    if cardIndex in range(65,74):
+        target[cardToJoker[cardIndex][propertyColor]] = 0
+    else:
+        target[cardToProperty[cardIndex]] = 0
 
 # amount of players
 noOfPlayers = 2
