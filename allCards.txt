@@ -36,9 +36,9 @@ Electric Company, 1
 Ventnor Avenue, 1
 Marvin Gardens, 1
 Atlantic Avenue, 1
+Rainbow Wild Card, 2
 Blue Green Wild Card, 1
 LightBlue Brown Wild Card, 1
-Rainbow Wild Card, 2
 Orange Purple Wild Card, 2
 Green Black Wild Card, 1
 LightBlue Black Wild Card, 1
