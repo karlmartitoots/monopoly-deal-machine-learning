@@ -64,7 +64,6 @@ def getPropertyAmount(player, color):
 def getPropertyAmountTest():
     player1 = 1
     player2 = 0
-    props = []
     boards[player1]["brown"]["brown1"] = 1
     boards[player1]["brown"]["brown2"] = 1
     boards[player1]["purple"]["purple1"] = 1
@@ -525,8 +524,8 @@ board = {
         "orange1": False, 
         "orange2": False,
         "orange3": False,
-        "orangepurple": False,
-        "orangepurple": False,
+        "orangepurple1": False,
+        "orangepurple2": False,
         "rainbow1": False,
         "rainbow2": False,
         "house": False,
@@ -536,8 +535,8 @@ board = {
         "purple1": False, 
         "purple2": False,
         "purple3": False,
-        "orangepurple": False,
-        "orangepurple": False,
+        "orangepurple1": False,
+        "orangepurple2": False,
         "rainbow1": False,
         "rainbow2": False,
         "house": False,
@@ -560,8 +559,8 @@ board = {
         "red1": False, 
         "red2": False,
         "red3": False,
-        "redyellow": False,
-        "redyellow": False,
+        "redyellow1": False,
+        "redyellow2": False,
         "rainbow1": False,
         "rainbow2": False,
         "house": False,
@@ -580,8 +579,8 @@ board = {
         "yellow1": False, 
         "yellow2": False,
         "yellow3": False,
-        "redyellow": False,
-        "redyellow": False,
+        "redyellow1": False,
+        "redyellow2": False,
         "rainbow1": False,
         "rainbow2": False,
         "house": False,

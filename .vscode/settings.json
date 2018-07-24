@@ -1,3 +1,13 @@
 {
-    "python.pythonPath": "C:\\Users\\Karlm\\Anaconda3\\python.exe"
+    "python.pythonPath": "C:\\Users\\Karlm\\Anaconda3\\python.exe",
+    "python.unitTest.unittestArgs": [
+        "-v",
+        "-s",
+        "./simpledesign",
+        "-p",
+        "*test*.py"
+    ],
+    "python.unitTest.pyTestEnabled": false,
+    "python.unitTest.nosetestsEnabled": false,
+    "python.unitTest.unittestEnabled": true
 }

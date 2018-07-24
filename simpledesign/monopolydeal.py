@@ -1,81 +1,84 @@
 import numpy as np
+import random
 
 # TESTED
 def drawFromDeck(amount, forPlayer):
-    # old one: cardIndices = np.random.choice([index for index, exists in zip(np.arange(106),deck) if exists], amount, replace=False)
-    cardIndices = np.random.choice(np.where(deck == True)[0], amount, replace=False)
-    deck[cardIndices] = 0
-    giveCards(cardIndices, forPlayer)
+    availableCards = [card for card, cardInDeck in deck.items() if cardInDeck]
+    chosenCards = random.sample(availableCards, amount)
+    for card in chosenCards:
+        deck[card] = False
+    giveCards(chosenCards, forPlayer)
 
 # TESTED
-def giveCards(cardIndices, toPlayer):
-    hands[toPlayer][cardIndices] = 1
+def giveCards(cards, toPlayer):
+    for card in cards:
+        hands[toPlayer][card] = True
 
 # TESTED
 def addHouseRent(func):
-    def houseRentAdder(currentPlayer, propertyColor):
-        return (func(currentPlayer, propertyColor) + 3) if boards[currentPlayer][colorToSetIndex[propertyColor]][-2] == 1 else func(currentPlayer, propertyColor)
+    def houseRentAdder(player, color):
+        return (func(player, color) + 3) if boards[player][color]["house"] else func(player, color)
     return houseRentAdder
 
 # TESTED
 def addHotelRent(func):
-    def hotelRentAdder(currentPlayer, propertyColor):
-        return (func(currentPlayer, propertyColor) + 4) if boards[currentPlayer][colorToSetIndex[propertyColor]][-1] == 1 else func(currentPlayer, propertyColor)
+    def hotelRentAdder(player, color):
+        return (func(player, color) + 4) if boards[player][color]["hotel"] else func(player, color)
     return hotelRentAdder
 
 # TESTED
 @addHouseRent
 @addHotelRent
-def calculateRentForPlayer(currentPlayer, propertyColor):
-    return colorToRent[propertyColor][getPropertyAmount(currentPlayer, propertyColor)-1]
+def calculateRentForPlayer(player, color):
+    return colorToRent[color][getPropertyAmount(player, color)-1]
 
 # TESTED
-def getPropertyAmount(currentPlayer, propertyColor):
+def getPropertyAmount(player, color):
     # actually includes houses and hotels, but can't have them anyway if not complete
-    return min(np.sum(boards[currentPlayer][colorToSetIndex[propertyColor]] == 1), colorToFullSetAmount[propertyColor])
+    return min(sum(boards[player][color].values()), colorToFullSetAmount[color])
 
-# TESTED
-def placeHouse(currentPlayer, propertyColor):
-    boards[currentPlayer][colorToSetIndex[propertyColor]][-2] = 1
+# TOTEST
+def placeHouse(player, color, card):
+    boards[player][color]["house"] = card
+    boards[player][sets][color].append(card)
+
+# TOTEST
+def placeHotel(player, color, card):
+    boards[player][color]["hotel"] = card
+    boards[player][sets][color].append(card)
+
+# TOTEST
+def placeProperty(player, card, color):
+    if card in ["rainbow1","rainbow2"] and not getPropertyAmount(player,color):
+        return False
+    
+    boards[player][color][card] = 1
+    makeSet(player, color)
     return True
 
-# TESTED
-def placeHotel(currentPlayer, propertyColor):
-    boards[currentPlayer][colorToSetIndex[propertyColor]][-1] = 1
-    return True
-
-# TESTED
-def placeProperty(currentPlayer, cardIndex, propertyColor):
-    # TODO: have to check if player has property in case of rainbow wildcard
-    target = boards[currentPlayer][colorToSetIndex[propertyColor]]
-    if cardIndex in range(65,74):
-        target[cardToJoker[cardIndex][propertyColor]] = 1
-    else:
-        target[cardToProperty[cardIndex]] = 1
-    return True
+# TOTEST
+def passGo(player):
+    drawFromDeck(2, player)
 
 # TOTEST
-def passGo(currentPlayer):
-    drawFromDeck(2, currentPlayer)
+def removeProperty(player, card, color):
+    boards[player][color][card] = 0
 
 # TOTEST
-def removeProperty(fromPlayer, cardIndex, propertyColor):
-    target = boards[fromPlayer][colorToSetIndex[propertyColor]]
-    if cardIndex in range(65,74):
-        target[cardToJoker[cardIndex][propertyColor]] = 0
-    else:
-        target[cardToProperty[cardIndex]] = 0
+def makeSets(player):
+    for color in ['brown','blue','green','lightblue','orange','purple','black','red','yellow','pistacchio']:
+        makeSet(player, color)
 
 # TOTEST
-def makeSets(playerIndex):
-    for setIndex in range(10):
-        makeSet(playerIndex, setIndexToColor[setIndex])
-
-# TOTEST
-def makeSet(playerIndex, setColor):
-    playerSets = sets[playerIndex]
+def makeSet(player, setColor):
+    playerSets = sets[player]
     setAmount = 0
-    props = set(np.where(boards[playerIndex][colorToSetIndex[setColor]] == 1))
+    props = set()
+    for card, exists in boards[player][setColor]:
+        if exists and card not in ["house","hotel"]:
+            props.add(card)
+        elif exists:
+            props.add(exists)
     if setColor + "1" in playerSets:
         setAmount += 1
         props -= set(playerSets[setColor + "1"])
@@ -86,11 +89,13 @@ def makeSet(playerIndex, setColor):
         playerSets[setColor + str(setAmount+1)] = list(props)
 
 # TOTEST
-def dealBreaker(fromPlayer, currentPlayer, setKey):
-    setIndices = sets[fromPlayer][setKey]
-    boards[fromPlayer][colorToSetIndex[setKey[:-1]]][setIndices] = 0
-    boards[currentPlayer][colorToSetIndex[setKey[:-1]]][setIndices] = 1
-    sets[currentPlayer][setKey if setKey not in sets[currentPlayer] else setKey[:-1] + "2"] = setIndices
+def dealBreaker(fromPlayer, toPlayer, setKey):
+    cardsInSet = sets[fromPlayer][setKey]
+    color = setKey[:-1]
+    for card in cardsInSet:
+        boards[fromPlayer][color][card] = 0
+        boards[toPlayer][color][card] = 1
+        sets[toPlayer][color + "1" if color + "1" not in sets[toPlayer] else color + "2"]
 
 # TOTEST
 def debtCollector(fromPlayer, currentPlayer):
@@ -100,16 +105,16 @@ def doubleRent():
     pass
 
 # TOTEST
-def forcedDeal(currentPlayer, otherPlayer, ownCardIndex, otherCardIndex, ownColor, otherColor):
-    removeProperty(otherPlayer, otherCardIndex, otherColor)
-    removeProperty(currentPlayer, ownCardIndex, ownColor)
-    placeProperty(otherPlayer, ownCardIndex, ownColor)
-    placeProperty(currentPlayer, otherCardIndex, otherColor)
+def forcedDeal(currentPlayer, otherPlayer, ownCard, otherCard, ownColor, otherColor):
+    removeProperty(otherPlayer, otherCard, otherColor)
+    removeProperty(currentPlayer, ownCard, ownColor)
+    placeProperty(otherPlayer, ownCard, ownColor)
+    placeProperty(currentPlayer, otherCard, otherColor)
 
 #TOTEST
-def slyDeal(currentPlayer, otherPlayer, cardIndex, color):
-    removeProperty(otherPlayer, cardIndex, color)
-    placeProperty(currentPlayer, cardIndex, color)
+def slyDeal(currentPlayer, otherPlayer, card, color):
+    removeProperty(otherPlayer, card, color)
+    placeProperty(currentPlayer, card, color)
 
 # TODO
 def sayNo(currentPlayer):
@@ -130,35 +135,61 @@ def askAmount(fromPlayer, toPlayer, amount):
     
     pass
 
-def payOptions(fromPlayer, toPlayer, amount):
+def getPropsForPlayer(player):
+    allCards = []
+    houseAmount = 0
+    hotelAmount = 0
+    for color in ['brown','blue','green','lightblue','orange','purple','black','red','yellow','pistacchio']:
+        allCards.extend([card for card, exists in boards[player][color] if exists])
+        if "house" in allCards:
+            houseAmount += 1
+            allCards -= "house"
+            allCards += "house" + str(houseAmount)
+        if "hotel" in allCards:
+            hotelAmount += 1
+            allCards -= "hotel"
+            allCards += "hotel" + str(hotelAmount)
+
+def getCashForPlayer(player):
+    return [card for card, exists in boards[player]["money"] if exists]
+
+def payOptions(player, amount):
     options = []
-    allItems = []
-    pass
+    payables = {}
+    for card in getCashForPlayer(player):
+        payables[card] = cardToValue[card] 
+    for card in getPropsForPlayer(player):
+        if card not in ["rainbow1","rainbow2"]:
+            payables[card] = cardToValue[card]  
+    genPayOptions(options, {}, payables, amount)
+    if not options:
+        options = payables.keys()
+    return options
+
+def genPayOptions(options, currentItems, itemsLeft, amount):
+    if sum(currentItems.values()) >= amount:
+        options.append(currentItems)
+        return
+
+    if not itemsLeft:
+        return
+    
+    item, value = itemsLeft.popitem()
+    genPayOptions(options, currentItems, itemsLeft, amount)
+    currentItemsPlus = dict(currentItems)
+    currentItemsPlus[item] = value
+    genPayOptions(options, currentItemsPlus, itemsLeft, amount)
+
+def playerWin(player):
+    playerSets = boards[player][sets]
+    nonDuplicateSets = []
+    for color in playerSets.keys():
+        if color[:-1] not in nonDuplicateSets:
+            nonDuplicateSets.append(color)
+    return True if len(nonDuplicateSets) >= 3 else False
 
 # amount of players
 noOfPlayers = 2
-#noOfPlayers = int(input("Insert amount of players:"))
-
-# init deck
-#deck = np.ones((106,))
-
-# init cardIndices down
-#cardsDown = np.zeros((106,))
-
-# init hands
-#hands = np.zeros((noOfPlayers, 106))
-
-# board = [np.zeros((7,)),       #0. browns
-#          np.zeros((7,)),       #1. dark blues
-#          np.zeros((9,)),       #2. greens
-#          np.zeros((9,)),       #3. light blues
-#          np.zeros((9,)),       #4. oranges
-#          np.zeros((9,)),       #5. purple
-#          np.zeros((11,)),      #6. rail roads
-#          np.zeros((9,)),       #7. reds
-#          np.zeros((7,)),       #8. utilites
-#          np.zeros((9,)),       #9. yellows
-#          np.zeros((67,))]      #10. money
 
 deck = {
     "dealbreaker1": True,
@@ -249,25 +280,25 @@ deck = {
     "redyellowrent1": True, 
     "redyellowrent2": True, 
     "10m": True, 
-    "1m": True, 
-    "1m": True, 
-    "1m": True, 
-    "1m": True, 
-    "1m": True, 
-    "1m": True, 
-    "2m": True, 
-    "2m": True, 
-    "2m": True, 
-    "2m": True, 
-    "2m": True, 
-    "3m": True, 
-    "3m": True, 
-    "3m": True, 
-    "4m": True, 
-    "4m": True, 
-    "4m": True, 
-    "5m": True, 
-    "5m": True
+    "1m1": True, 
+    "1m2": True, 
+    "1m3": True, 
+    "1m4": True, 
+    "1m5": True, 
+    "1m6": True, 
+    "2m1": True, 
+    "2m2": True, 
+    "2m3": True, 
+    "2m4": True, 
+    "2m5": True, 
+    "3m1": True, 
+    "3m2": True, 
+    "3m3": True, 
+    "4m1": True, 
+    "4m2": True, 
+    "4m3": True, 
+    "5m1": True, 
+    "5m2": True
 }
 
 cardsDown = {
@@ -359,25 +390,25 @@ cardsDown = {
     "redyellowrent1": False, 
     "redyellowrent2": False, 
     "10m": False, 
-    "1m": False, 
-    "1m": False, 
-    "1m": False, 
-    "1m": False, 
-    "1m": False, 
-    "1m": False, 
-    "2m": False, 
-    "2m": False, 
-    "2m": False, 
-    "2m": False, 
-    "2m": False, 
-    "3m": False, 
-    "3m": False, 
-    "3m": False, 
-    "4m": False, 
-    "4m": False, 
-    "4m": False, 
-    "5m": False, 
-    "5m": False
+    "1m1": False, 
+    "1m2": False, 
+    "1m3": False, 
+    "1m4": False, 
+    "1m5": False, 
+    "1m6": False, 
+    "2m1": False, 
+    "2m2": False, 
+    "2m3": False, 
+    "2m4": False, 
+    "2m5": False, 
+    "3m1": False, 
+    "3m2": False, 
+    "3m3": False, 
+    "4m1": False, 
+    "4m2": False, 
+    "4m3": False, 
+    "5m1": False, 
+    "5m2": False
 }
 
 hands =  []
@@ -426,8 +457,8 @@ board = {
         "orange1": False, 
         "orange2": False,
         "orange3": False,
-        "orangepurple": False,
-        "orangepurple": False,
+        "orangepurple1": False,
+        "orangepurple2": False,
         "rainbow1": False,
         "rainbow2": False,
         "house": False,
@@ -437,8 +468,8 @@ board = {
         "purple1": False, 
         "purple2": False,
         "purple3": False,
-        "orangepurple": False,
-        "orangepurple": False,
+        "orangepurple1": False,
+        "orangepurple2": False,
         "rainbow1": False,
         "rainbow2": False,
         "house": False,
@@ -461,8 +492,8 @@ board = {
         "red1": False, 
         "red2": False,
         "red3": False,
-        "redyellow": False,
-        "redyellow": False,
+        "redyellow1": False,
+        "redyellow2": False,
         "rainbow1": False,
         "rainbow2": False,
         "house": False,
@@ -481,12 +512,82 @@ board = {
         "yellow1": False, 
         "yellow2": False,
         "yellow3": False,
-        "redyellow": False,
-        "redyellow": False,
+        "redyellow1": False,
+        "redyellow2": False,
         "rainbow1": False,
         "rainbow2": False,
         "house": False,
         "hotel": False
+    },
+    "money":{
+        "dealbreaker1": False,
+        "dealbreaker2": False,
+        "debtcollector1": False,
+        "debtcollector2": False,
+        "debtcollector3": False,
+        "doublerent1": False,
+        "doublerent2": False,
+        "forceddeal1": False,
+        "forceddeal2": False,
+        "forceddeal3": False,
+        "placehouse1": False,
+        "placehouse2": False,
+        "placehouse3": False,
+        "placehotel1": False,
+        "placehotel2": False,
+        "placehotel3": False,
+        "sayno1": False,
+        "sayno2": False,
+        "sayno3": False,
+        "birthday1": False,
+        "birthday2": False,
+        "birthday3": False,
+        "passgo1": False,
+        "passgo2": False,
+        "passgo3": False,
+        "passgo4": False,
+        "passgo5": False,
+        "passgo6": False,
+        "passgo7": False,
+        "passgo8": False,
+        "passgo9": False,
+        "passgo10": False,
+        "slydeal1": False,
+        "slydeal2": False,
+        "slydeal3": False,
+        "rainbowrent1": False,
+        "rainbowrent2": False,
+        "rainbowrent3": False,
+        "bluegreenrent1": False,
+        "bluegreenrent2": False,
+        "lightbluebrownrent1": False,
+        "lightbluebrownrent2": False,
+        "orangepurplerent1": False, 
+        "orangepurplerent2": False, 
+        "pistacchioblackrent1": False, 
+        "pistacchioblackrent2": False, 
+        "redyellowrent1": False, 
+        "redyellowrent2": False, 
+        "10m": False, 
+        "1m1": False, 
+        "1m2": False, 
+        "1m3": False, 
+        "1m4": False, 
+        "1m5": False, 
+        "1m6": False, 
+        "2m1": False, 
+        "2m2": False, 
+        "2m3": False, 
+        "2m4": False, 
+        "2m5": False, 
+        "3m1": False, 
+        "3m2": False, 
+        "3m3": False, 
+        "4m1": False, 
+        "4m2": False, 
+        "4m3": False, 
+        "5m1": False, 
+        "5m2": False
     }
 }
 boards = []
@@ -498,6 +599,27 @@ for player in range(noOfPlayers):
     boards.append(dict(board))
     drawFromDeck(5, player)
 
+gameOver = False
+while not gameOver:
+    cycle = 0
+    player = cycle % noOfPlayers
+    moves = 0
+    while moves <3:
+        if not moves:
+            waitForMove(player)
+        else:
+            if wantToMove(player):
+                waitForMove(player)
+        if playerWin:
+            gameOver = True
+            break
+        moves += 1
+
+def waitForMove(player):
+    pass
+
+def wantToMove(player):
+    pass
 
 all_action_cards = {
      0: dealBreaker,
@@ -537,22 +659,6 @@ all_action_cards = {
     34: slyDeal
 }
 
-# set index in a players board array
-colorToSetIndex = {
-    "brown": 0,
-    "blue": 1,
-    "green": 2,
-    "lightblue": 3,
-    "orange": 4,
-    "purple": 5,
-    "black": 6,
-    "red": 7,
-    "pistacchio": 8,
-    "yellow": 9
-}
-
-setIndexToColor = dict((reversed(item) for item in colorToSetIndex.items()))
-
 # amount of properties in full set
 colorToFullSetAmount = {
     "brown": 2,
@@ -567,161 +673,115 @@ colorToFullSetAmount = {
     "yellow": 3
 }
 
-# amount of jokers in existance
-colorToJokers = {
-    "brown": 1,
-    "blue": 1,
-    "green": 2,
-    "lightblue": 2,
-    "orange": 2,
-    "purple": 2,
-    "black": 3,
-    "red": 2,
-    "pistacchio": 1,
-    "yellow": 2
-}
-
-# property propertyColor
-cardIndexToColor = {
-    35: "brown",
-    36: "brown",
-    37: "blue",
-    38: "blue",
-    39: "green",
-    40: "green",
-    41: "green",
-    42: "lightblue",
-    43: "lightblue",
-    44: "lightblue",
-    45: "orange",
-    46: "orange",
-    47: "orange",
-    48: "purple",
-    49: "purple",
-    50: "purple",
-    51: "black",
-    52: "black",
-    53: "black",
-    54: "black",
-    55: "red",
-    56: "red",
-    57: "red",
-    58: "pistacchio",
-    59: "pistacchio",
-    60: "yellow",
-    61: "yellow",
-    62: "yellow"
-}
-
 # card value
-cardIndexToValue = {
-    0: 5,
-    1: 5,
-    2: 3,
-    3: 3,
-    4: 3,
-    5: 1,
-    6: 1,
-    7: 3,
-    8: 3,
-    9: 3,
-    10: 4,
-    11: 4,
-    12: 4,
-    13: 3,
-    14: 3,
-    15: 3,
-    16: 4,
-    17: 4,
-    18: 4,
-    19: 2,
-    20: 2,
-    21: 2,
-    22: 1,
-    23: 1,
-    24: 1,
-    25: 1,
-    26: 1,
-    27: 1,
-    28: 1,
-    29: 1,
-    30: 1,
-    31: 1,
-    32: 3,
-    33: 3,
-    34: 3,
-    35: 1,
-    36: 1, 
-    37: 4, 
-    38: 4, 
-    39: 4, 
-    40: 4, 
-    41: 4, 
-    42: 1, 
-    43: 1, 
-    44: 1, 
-    45: 2, 
-    46: 2, 
-    47: 2, 
-    48: 2, 
-    49: 2,
-    50: 2, 
-    51: 2, 
-    52: 2, 
-    53: 2, 
-    54: 2, 
-    55: 3, 
-    56: 3, 
-    57: 3, 
-    58: 2, 
-    59: 2,
-    60: 3, 
-    61: 3, 
-    62: 3,
-    63: 0, 
-    64: 0, 
-    65: 4, 
-    66: 1, 
-    67: 2, 
-    68: 2, 
-    69: 4,
-    70: 4, 
-    71: 2, 
-    72: 3, 
-    73: 3,
-    74: 3,
-    75: 3,
-    76: 3, 
-    77: 1, 
-    78: 1, 
-    79: 1, 
-    80: 1,
-    81: 1, 
-    82: 1,
-    83: 1, 
-    84: 1,
-    85: 1,
-    86: 1,
-    87: 10,
-    88: 1,
-    89: 1,
-    90: 1,
-    91: 1, 
-    92: 1, 
-    93: 1, 
-    94: 2, 
-    95: 2, 
-    96: 2, 
-    97: 2, 
-    98: 2, 
-    99: 3, 
-    100: 3, 
-    101: 3, 
-    102: 4, 
-    103: 4, 
-    104: 4,
-    105: 5,
-    106: 5
+cardToValue = {
+    "dealbreaker1": 5,
+    "dealbreaker2": 5,
+    "debtcollector1": 3,
+    "debtcollector2": 3,
+    "debtcollector3": 3,
+    "doublerent1": 1,
+    "doublerent2": 1,
+    "forceddeal1": 3,
+    "forceddeal2": 3,
+    "forceddeal3": 3,
+    "placehouse1": 4,
+    "placehouse2": 4,
+    "placehouse3": 4,
+    "placehotel1": 3,
+    "placehotel2": 3,
+    "placehotel3": 3,
+    "sayno1": 4,
+    "sayno2": 4,
+    "sayno3": 4,
+    "birthday1": 2,
+    "birthday2": 2,
+    "birthday3": 2,
+    "passgo1": 1,
+    "passgo2": 1,
+    "passgo3": 1,
+    "passgo4": 1,
+    "passgo5": 1,
+    "passgo6": 1,
+    "passgo7": 1,
+    "passgo8": 1,
+    "passgo9": 1,
+    "passgo10": 1,
+    "slydeal1": 3,
+    "slydeal2": 3,
+    "slydeal3": 3,
+    "brown1": 1,
+    "brown2": 1,
+    "blue1": 4,
+    "blue2": 4,
+    "green1": 4,
+    "green2": 4,
+    "green3": 4,
+    "lightblue1": 1,
+    "lightblue2": 1,
+    "lightblue3": 1,
+    "orange1": 2,
+    "orange2": 2,
+    "orange3": 2,
+    "purple1": 2,
+    "purple2": 2,
+    "purple3": 2,
+    "black1": 2,
+    "black2": 2,
+    "black3": 2,
+    "black4": 2,
+    "red1": 3,
+    "red2": 3,
+    "red3": 3,
+    "pistacchio1": 2,
+    "pistacchio2": 2,
+    "yellow1": 3,
+    "yellow2": 3,
+    "yellow3": 3,
+    "rainbow1": 0,
+    "rainbow2": 0,
+    "bluegreen": 4,
+    "lightbluebrown": 1,
+    "orangepurple1": 2,
+    "orangepurple2": 2,
+    "greenblack": 4,
+    "lightblueblack": 4,
+    "pistacchioblack": 2,
+    "redyellow1": 3,
+    "redyellow2": 3,
+    "rainbowrent1": 3,
+    "rainbowrent2": 3,
+    "rainbowrent3": 3,
+    "bluegreenrent1": 1,
+    "bluegreenrent2": 1,
+    "lightbluebrownrent1": 1,
+    "lightbluebrownrent2": 1,
+    "orangepurplerent1": 1,
+    "orangepurplerent2": 1,
+    "pistacchioblackrent1": 1,
+    "pistacchioblackrent2": 1,
+    "redyellowrent1": 1,
+    "redyellowrent2": 1,
+    "10m": 10,
+    "1m1": 1,
+    "1m2": 1,
+    "1m3": 1,
+    "1m4": 1,
+    "1m5": 1,
+    "1m6": 1,
+    "2m1": 2,
+    "2m2": 2,
+    "2m3": 2,
+    "2m4": 2,
+    "2m5": 2,
+    "3m1": 3,
+    "3m2": 3,
+    "3m3": 3,
+    "4m1": 4,
+    "4m2": 4,
+    "4m3": 4,
+    "5m1": 5,
+    "5m2": 5
 }
 
 # index - property amount, value - rent amount
@@ -736,76 +796,5 @@ colorToRent = {
     "red": (2,3,6),
     "pistacchio": (1,2),
     "yellow": (2,4,6)
-}
-
-#first index - card index, second index - chosen color, value - joker index
-cardToJoker = {
-    65: {
-        "blue": 2,
-        "green": 3
-    },
-    66: {
-        "brown": 2,
-        "lightblue": 3
-    }, 
-    67: {"orange": 3,
-        "purple": 3
-    }, 
-    68: {"orange": 4,
-        "purple": 4
-    }, 
-    69: {"green": 4,
-        "black": 4
-    },
-    70: {
-        "lightblue": 4,
-        "black": 5
-    }, 
-    71: {
-        "pistacchio": 2,
-        "black": 6
-    }, 
-    72: {
-        "red": 3,
-        "yellow": 3
-    },
-    73: {
-        "red": 4,
-        "yellow": 4
-    }
-}
-
-# index - card index, value - index in a property set
-cardToProperty = {
-    35: 0,
-    36: 1,
-    37: 0,
-    38: 1,
-    39: 0,
-    40: 1,
-    41: 2,
-    42: 0,
-    43: 1,
-    44: 2,
-    45: 0,
-    46: 1,
-    47: 2,
-    48: 0,
-    49: 1,
-    50: 2,
-    51: 0,
-    52: 1,
-    53: 2,
-    54: 3,
-    55: 0,
-    56: 1,
-    57: 2,
-    58: 0,
-    59: 1,
-    60: 0,
-    61: 1,
-    62: 2,
-    63: -3,
-    64: -4
 }
 
