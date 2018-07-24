@@ -1,0 +1,58 @@
+Deal Breaker, 2
+Debt Collector, 3
+Double The Rent, 2
+Forced Deal, 3
+Hotel, 3
+House, 3
+Just Say No!, 3
+It's My Birthday, 3
+Pass GO, 10
+Sly Deal, 3
+Baltic Avenue, 1
+Mediterranean Avenue, 1
+Boardwalk, 1
+Park Place, 1
+North Carolina Avenue, 1
+Pacific Avenue, 1
+Pennsylvania Avenue, 1
+Connecticut Avenue, 1
+Oriental Avenue, 1
+Vermont Avenue, 1
+New York Avenue, 1
+St. James Palace, 1
+Tennessee Avenue, 1
+St. Charles Place, 1
+Virginia Avenue, 1
+States Avenue, 1
+Short Line, 1
+B. & O. Railroad, 1
+Reading Railroad, 1
+Pennsylvania Railroad, 1
+Kentucky Avenue, 1
+Indiana Avenue, 1
+Illinois Avenue, 1
+Water Works, 1
+Electric Company, 1
+Ventnor Avenue, 1
+Marvin Gardens, 1
+Atlantic Avenue, 1
+Blue Green Wild Card, 1
+LightBlue Brown Wild Card, 1
+Rainbow Wild Card, 2
+Orange Purple Wild Card, 2
+Green Black Wild Card, 1
+LightBlue Black Wild Card, 1
+Pistachio Black Wild Card, 1
+Red Yellow Wild Card, 2
+Rainbow Rent, 3
+Blue Green Rent, 2
+LightBlue Brown Rent, 2
+Orange Purple Rent, 2
+Pistachio Black Rent, 2
+Red Yellow Rent, 2
+10m Cash, 1
+1m Cash, 6
+2m Cash, 5
+3m Cash, 3
+4m Cash, 3
+5m Cash, 2

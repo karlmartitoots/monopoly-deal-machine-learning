@@ -1,0 +1,40 @@
+0.   Brown*
+1.   Brown*
+2.   Blue*
+3.   Blue*
+4.   Blue*
+5.   Purple*
+6.   Purple*
+7.   Purple*
+8.   Orange*
+9.   Orange*
+10.  Orange*
+11.  Red*
+12.  Red*
+13.  Red*
+14.  Yellow*
+15.  Yellow*
+16.  Yellow*
+17.  Green*
+18.  Green*
+19.  Green*
+20.  Dark Blue*
+21.  Dark Blue*
+22.  Utility*
+23.  Utility*
+24.  Railroad*
+25.  Railroad*
+26.  Railroad*
+27.  Railroad*
+28.  Dark Blue/Green**
+29.  Blue/Brown**
+30.  Any Property*********
+31.  Any Property*********
+32.  Orange/Purple**
+33.  Orange/Purple**
+33.  Green/Railroad**
+34.  Blue/Railroad**
+35.  Utility/Railroad**
+36.  Yellow/Red**
+37.  Yellow/Red**
+
