@@ -6,6 +6,11 @@ from board import Board
 
 
 class Player():
+    
+    playerId = 0
+    
     def __init__(self):
         self.hand = Hand()
         self.board = Board()
+        self.id = Player.playerId
+        Player.playerId += 1

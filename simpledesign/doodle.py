@@ -221,3 +221,8 @@ cardToValue = {
     "5m2": 5
 }
 
+x = np.ones((106,))
+
+x[np.random.choice(106, size = 50, replace = False)] = 0
+
+print(np.where(x)[0])
