@@ -17,7 +17,7 @@ class Board():
 
     '''
     def __init__(self):
-        self.board = -np.ones((108,))
+        self.board = np.zeros((108,))
 
     def getCard(self, boardIndex, cardIndex):
         self.board[boardIndex] = cardIndex
